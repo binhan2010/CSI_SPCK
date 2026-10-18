@@ -1,0 +1,12 @@
+{
+    "baaaa1122@gmail.com": {
+        "username": "baaaa",
+        "email": "baaaa1122@gmail.com"
+    },
+    "baaaaa@gmail.com": {
+        "username": "baaaaa",
+        "email": "baaaaa@gmail.com",
+        "salt": "1a4bfd9227a0000713199c5e4e565abc",
+        "password_hash": "a78452abb3d1d5942f08bfcbb4f5c74ba6fb34d6fd5c47622973ab5e2014504d"
+    }
+}
