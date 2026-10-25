@@ -1,123 +1,154 @@
 import streamlit as st
-import base64
 import json
 import re
 import hashlib
 from pathlib import Path
+import base64
+import streamlit as st
+import sys
+from pathlib import Path
 
-# image_path = Path(r"E:\CSI\spck_csi\image\bg1.png")
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+st.set_page_config(
+    page_title="Đăng nhập / Đăng ký",
+    page_icon="🏀",
+    initial_sidebar_state="collapsed"
+)
+
 file_path = Path(__file__).parent / "users.json"
 BASE_DIR = Path(__file__).resolve().parents[1]
 BG_PATH = BASE_DIR / "image" / "bg.jpg"
 
-st.set_page_config(page_title="Login", page_icon="🏀",initial_sidebar_state="collapsed")              
-# with open(image_path, "rb") as file:
-#     image = base64.b64encode(file.read()).decode()
-
-# st.markdown(
-#     f"""
-#     <style>
-#         .stApp {{
-#             background: transparent !important;
-#         }}
-#         .stApp::before {{
-#             content: "";
-#             position: fixed;
-#             top: 0;
-#             left: 0;
-#             width: 100%;
-#             height: 100%;
-#             background-image: url("data:image/png;base64,{image}");
-#             background-size: cover;
-#             background-position: center;
-#             background-repeat: no-repeat;
-#             z-index: -2;
-#         }}
-#     </style>
-#     """,
-#     unsafe_allow_html=True
-# )
-# st.markdown("""
-#     <style>
-#         [data-testid="stSidebar"] {
-#             display: none;
-#         }
-
-#         [data-testid="stSidebarCollapsedControl"] {
-#             display: none;
-#         }
-#     </style>
-# """, unsafe_allow_html=True)
 
 
-if BG_PATH.exists():
-    with open(BG_PATH, "rb") as file:
-        image = base64.b64encode(file.read()).decode()
-else:
-    image = ""
-    st.error(f"Không tìm thấy file ảnh nền tại: {BG_PATH}")
-st.markdown(
-    f"""
-    <style>
-        .stApp {{
-            background: transparent !important;
-        }}
-        .stApp::before {{
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image:
-                linear-gradient(rgba(10, 20, 40, 0.8),
-                                rgba(10, 20, 40, 0.8)),
-                url("data:image/jpeg;base64,{image}");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed; 
-            z-index: -2;
-        }}
-        [data-testid="stSidebar"] {{
-            display: none;
-        }}
-        [data-testid="stSidebarCollapsedControl"] {{
-            display: none;
-        }}
-        h3, 
-        [data-testid="stSubheader"] h3, 
-        [data-testid="stSubheader"] span {{
-            color: #ffff !important;
-            font-size: 28px !important;
-            font-weight: 700 !important;
-        }}
 
-        .block-container {{
-            max-width: 600px;
-            margin-top: 10vh;
-        }}
-        [data-testid="stVerticalBlockBorderWrapper"] > div:nth-child(1) {{
-            background-color:#ffff;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }}
-        [data-testid="stSubheader"] h2 {{
-            color:#ffff !important;
-        }}
-        [data-testid="stWidgetLabel"] p {{
-            color: #ffff !important;
-        }}
-        [data-testid="stPageLink"] {{
-                color:#ffff
-                
-        }}
+st.markdown("""
+<style>
+#MainMenu, footer, header {
+    visibility: hidden;
+}
 
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+[data-testid="stSidebar"] {
+    display: none;
+}
+
+.block-container {
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+    max-width: 1200px;
+    width:450px;
+    margin-top:50px;
+}
+
+.stApp {
+    # background: linear-gradient(135deg, #101010, #202020);
+    background:#ffff
+    color:white;
+}
+
+
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 75px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(15, 15, 15, 0.96);
+    border-bottom: 1px solid #333;
+    padding: 0 40px;
+    z-index: 9999;
+    margin-top:0;
+    border-radius: 0;
+}
+
+
+.logo {
+    color: #ff861f;
+    font-size: 25px;
+    font-weight: 800;
+}
+
+.nav-links {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.nav-links a:hover {
+    color: #ff861f;
+}
+
+
+.orange {
+    color: #ff861f;
+}
+
+
+
+div.stButton > button {
+    background: #ff861f;
+    color: #111111;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    min-height: 43px;
+}
+
+div.stButton > button:hover {
+    background: #ff9b43;
+    color: #111111;
+    border: none;
+}
+
+div[data-testid="stTextInput"] input {
+    background:#ffff;
+    color: black;
+    border: 1px solid #ffff;
+    border-radius: 10px;
+}
+
+.answer-box {
+    background: #ffff;
+    border-left: 4px solid #ff861f;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 18px;
+    color: #ffff;
+}
+
+.footer {
+    text-align: center;
+    color: #999999;
+    margin-top: 35px;
+    padding: 20px;
+    border-top: 1px solid #333;
+}
+</style>
+""", unsafe_allow_html=True)
+st.markdown("""
+<div class="navbar">
+    <div class="logo">🏀 BasketZone</div>
+    <div class="nav-links">
+        <a href="/home" target="_self">Trang chủ</a>
+        <a href="/club" target="_self">Câu lạc bộ</a>
+        <a href="/booking" target="_self">Đặt sân</a>
+        <a href="/login" target="_self">Đăng nhập</a>
+        <a href="/register" target="_self">Đăng ký</a>
+</div>
+""", unsafe_allow_html=True)
+
 def validate_username(username):
     if not username:
         return "Vui lòng nhập username."
@@ -229,16 +260,3 @@ with st.container(border=True):
                     st.error(
                         "Không thể đọc dữ liệu tài khoản. "
                         "Hãy kiểm tra file users.json."
-                    )
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("""
-        <style>
-            div.stPageLink a {
-                color:#0000FF
-                
-            }
-        </style>
-    """, unsafe_allow_html=True)
-st.page_link("pages/register.py", label="Đăng ký")
-st.page_link("home.py",label="Trang chủ")
