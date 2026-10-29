@@ -96,7 +96,7 @@ st.markdown("""
 }
 
 .hero p {
-    color: #cccccc;
+    color: #ffff;
     font-size: 16px;
 }
 
@@ -114,11 +114,25 @@ st.markdown("""
     min-height: 95px;
     color: #eeeeee;
 }
-
-
-div.stTitle {
-margin-top:100px;
+/* Giờ được chọn: màu cam */
+div.stButton > button[kind="primary"] {
+    background: #ff861f !important;
+    color: #222 !important;
+    border: 1px solid #ff861f !important;
 }
+div.stButton > button[kind="secondary"],
+div.stButton > button[kind="primary"] {
+    background-color: #ff861f !important;
+    color: #111111 !important;
+    border: 1px solid #ff861f !important;
+    border-radius: 10px;
+    font-weight: 700;
+    margin-top:15px
+}
+
+
+
+
 div.stButton > button {
     background: #ff861f;
     color: #111111;
@@ -225,7 +239,7 @@ selected = st.session_state.get("selected_team")
 
 if selected:
     st.divider()
-    st.header("Đơn đăng ký tham gia")
+    st.title("Đơn đăng ký tham gia")
     st.subheader(selected)
 
     with st.form("form_" + selected):
@@ -248,13 +262,11 @@ if selected:
         )
         reason = st.text_area("Lý do muốn tham gia")
 
-        submitted = st.form_submit_button("Gửi đơn đăng ký")
-
-    if submitted:
-        if not full_name.strip() or not email.strip() or "@" not in email:
-            st.error("Vui lòng nhập họ tên và email hợp lệ.")
-        else:
-            st.success(
-                f"Đã ghi nhận đơn đăng ký của {full_name} "
-                f"vào câu lạc bộ {selected}!"
-            )
+        if st.form_submit_button("Gửi đơn đăng ký",type="primary"):
+            if not full_name.strip() or not email.strip() or "@" not in email:
+                st.error("Vui lòng nhập họ tên và email hợp lệ.")
+            else:
+                st.success(
+                    f"Đã ghi nhận đơn đăng ký của {full_name} "
+                    f"vào câu lạc bộ {selected}!"
+                )
