@@ -1,27 +1,35 @@
+
 import streamlit as st
 import json
 from pathlib import Path
 from datetime import date
+
+st.set_page_config(
+    page_title="Đặt sân",
+    page_icon="🏀",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
 st.markdown("""
 <style>
 #MainMenu, footer, header {
     visibility: hidden;
 }
-/*ẨNn side bar*/
+
 [data-testid="stSidebar"] {
     display: none;
 }
 
 .block-container {
-    padding-top: 1rem;
+    padding-top: 5rem;
     padding-bottom: 2rem;
     max-width: 1200px;
 }
 
 .stApp {
-    # background: linear-gradient(135deg, #101010, #202020);
-    background:#ffff
-    color:white;
+    background: white;
+    color: #222;
 }
 
 .navbar {
@@ -38,10 +46,7 @@ st.markdown("""
     border-bottom: 1px solid #333;
     padding: 0 40px;
     z-index: 9999;
-    margin-top:0;
-    border-radius: 0;
 }
-
 
 .logo {
     color: #ff861f;
@@ -66,102 +71,88 @@ st.markdown("""
     color: #ff861f;
 }
 
-.hero {
-    background: linear-gradient(110deg, #252525, #171717);
-    border: 1px solid #393939;
-    border-radius: 20px;
-    padding: 28px;
-    margin-bottom: 24px;
-    margin-top:40px;
-}
-
-.hero h1 {
-    font-size: 38px;
-    margin-bottom: 12px;
-    color: white;
-}
-
-.orange {
-    color: #ff861f;
-}
-
-.hero p {
-    color: #cccccc;
-    font-size: 16px;
-}
-
-.section-title {
-    font-size: 23px;
-    font-weight: 750;
-    margin: 20px 0 12px;
-}
-
-.question-card {
-    background: #222222;
-    border: 1px solid #393939;
-    border-radius: 12px;
-    padding: 14px;
-    min-height: 95px;
-    color: #eeeeee;
-}
-
 div.stButton > button {
-    background: #ff861f;
-    color: #111111;
-    border: none;
+    border-radius: 10px;
+    min-height: 43px;
+    font-weight: 700;
+}
+
+/* Giờ được chọn: màu cam */
+div.stButton > button[kind="primary"] {
+    background: #ff861f !important;
+    color: #222 !important;
+    border: 1px solid #ff861f !important;
+}
+div.stButton > button[kind="secondary"],
+div.stButton > button[kind="primary"] {
+    background-color: #ff861f !important;
+    color: #111111 !important;
+    border: 1px solid #ff861f !important;
     border-radius: 10px;
     font-weight: 700;
-    min-height: 43px;
+    margin-top:15px
 }
 
-div.stButton > button:hover {
-    background: #ff9b43;
-    color: #111111;
-    border: none;
+/* Không đổi màu khi hover */
+div.stButton > button[kind="secondary"]:hover,
+div.stButton > button[kind="primary"]:hover {
+    background-color: #ff861f !important;
+    color: #111111 !important;
+    border: 1px solid #ff861f !important;
+}
+/* Giờ chưa chọn: màu trắng */
+div.stButton > button[kind="secondary"] {
+    background: white !important;
+    color: #222 !important;
+    border: 1px solid #ddd !important;
+}
+
+/* Không đổi màu khi hover */
+div.stButton > button[kind="primary"]:hover {
+    background: #ff861f !important;
+    color: #222 !important;
+}
+
+div.stButton > button[kind="secondary"]:hover {
+    background: white !important;
+    color: #222 !important;
+}
+
+div.stButton > button:disabled {
+    background: #cccccc !important;
+    color: #666666 !important;
+    border: 1px solid #cccccc !important;
 }
 
 div[data-testid="stTextInput"] input {
-    background:#ffff;
-    color:black;
-    border: 1px ;
+    background: white;
+    color: black;
+    border: 1px solid #ddd;
     border-radius: 10px;
 }
 
-.answer-box {
-    background: #ffff;
-    border-left: 4px solid;
-    border-radius: 10px;
-    padding: 20px;
-    margin-top: 18px;
-    color: white;
-}
 .footer {
     text-align: center;
-    color: #999999;
+    color: #999;
     margin-top: 35px;
     padding: 20px;
-    border-top: 1px solid #333;
+    border-top: 1px solid #eee;
 }
 </style>
 """, unsafe_allow_html=True)
+
 st.markdown("""
 <div class="navbar">
-    <div class="logo">BasketZone</div>
+    <div class="logo">🏀 BasketZone</div>
     <div class="nav-links">
-        <a href="home.py" target="_self">Trang chủ</a>
+        <a href="/home" target="_self">Trang chủ</a>
         <a href="/club" target="_self">Câu lạc bộ</a>
         <a href="/booking" target="_self">Đặt sân</a>
         <a href="/login" target="_self">Đăng nhập</a>
         <a href="/register" target="_self">Đăng ký</a>
+    </div>
 </div>
 """, unsafe_allow_html=True)
-
-st.set_page_config(
-    page_title="Đặt sân",
-    page_icon="🏀",
-    layout="wide",
-    initial_sidebar_state="collapsed",
-)
 
 courts = {
     "Sân Hà Đông": {
@@ -200,9 +191,12 @@ def save_bookings(data):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 
-# Tìm kiếm sân
 st.title("Đặt lịch sân bóng rổ")
-tim = st.text_input("Tìm kiếm sân", placeholder="Nhập tên sân hoặc khu vực")
+
+tim = st.text_input(
+    "Tìm kiếm sân",
+    placeholder="Nhập tên sân hoặc khu vực"
+)
 
 ket_qua = [
     ten for ten, tt in courts.items()
@@ -217,38 +211,39 @@ for ten in ket_qua:
         st.subheader(ten)
         st.write(tt["address"])
         st.caption(tt["description"])
-        st.markdown(
-            f"<div class='price'>{tt['price']:,} VNĐ/giờ</div>",
-            unsafe_allow_html=True
-        )
+        st.write(f"**{tt['price']:,} VNĐ/giờ**")
 
-        if st.button("Chọn sân", key=f"chon_{ten}"):
+        if st.button("Chọn sân", key=f"chon_{ten}", type="primary"):
             st.session_state["san_chon"] = ten
             st.rerun()
 
 if tim.strip() and not ket_qua:
     st.warning("Không tìm thấy sân phù hợp.")
 
-# Đặt sân
 san = st.session_state.get("san_chon")
 
 if san in courts:
     tt = courts[san]
+
     st.divider()
     st.header(f"Đặt lịch: {san}")
     st.write(tt["address"])
 
-    ngay = st.date_input("Ngày thuê", min_value=date.today())
+    ngay = st.date_input(
+        "Ngày thuê",
+        min_value=date.today(),
+        key=f"ngay_{san}"
+    )
+
     cac_gio = list(range(7, 21, 2))
     ma_gio = f"gio_{san}_{ngay}"
 
-    #grid
+    lich = load_bookings()
+
     for hang in range(0, len(cac_gio), 4):
         cot = st.columns(4)
 
         for j, gio in enumerate(cac_gio[hang:hang + 4]):
-            lich = load_bookings()
-
             bi_trung = any(
                 b["court"] == san
                 and b["date"] == str(ngay)
@@ -259,28 +254,13 @@ if san in courts:
 
             dang_chon = st.session_state.get(ma_gio) == gio
 
-            mau ="#cccccc" if bi_trung else (
-            "#ff861f" if dang_chon else "#ffffff"
-            )
-
             with cot[j]:
-                st.markdown(
-                    f"""
-                    <style>
-                    div.st-key-{ma_gio}_{gio} button {{
-                        background: {mau};
-                        color: #222;
-                        border: 1px solid #ddd;
-                    }}
-                    </style>
-                    """,
-                    unsafe_allow_html=True
-                )
-
                 if st.button(
                     f"{gio:02d}:00 - {gio+2:02d}:00",
                     key=f"{ma_gio}_{gio}",
-                    disabled=bi_trung
+                    disabled=bi_trung,
+                    type="primary" if dang_chon else "secondary",
+                    use_container_width=True
                 ):
                     st.session_state[ma_gio] = gio
                     st.rerun()
@@ -298,11 +278,13 @@ if san in courts:
         <div style="font-size:26px;font-weight:bold;color:#ed7815;">
             {tong_tien:,} VNĐ
         </div>
-        {tt['price']:,} đ
+        Giá thuê: {tt['price']:,} VNĐ/giờ × {so_gio} giờ
     </div>
     """, unsafe_allow_html=True)
 
-    if st.button("Xác nhận đặt sân"):
+
+
+    if st.button("Xác nhận đặt sân", type="primary"):
         sdt_sach = sdt.strip().replace(" ", "")
 
         if not ho_ten.strip() or not sdt_sach:
@@ -345,7 +327,6 @@ if san in courts:
                 except OSError:
                     st.error("Không thể lưu lịch đặt sân.")
 
-#hiện file lịch đã đặt
 st.divider()
 st.header("Lịch đã đặt sân")
 
@@ -381,7 +362,3 @@ st.markdown("""
     Kết nối đam mê bóng rổ của bạn.
 </div>
 """, unsafe_allow_html=True)
-
-
-
-
