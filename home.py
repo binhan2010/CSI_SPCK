@@ -1,7 +1,11 @@
 import streamlit as st
 import google.genai as genai
-from google.genai import types
-from config import GEMINI_API_KEY, NBA_API_KEY
+import requests
+import time,random
+
+from config import GEMINI_API_KEY,NBA_API_KEY
+from datetime import datetime
+from zoneinfo import ZoneInfo
 st.set_page_config(
     page_title="Trang chủ",
     page_icon="🏀",
@@ -122,21 +126,21 @@ div.stButton > button {
 }
 
 div.stButton > button:hover {
-    background: #ff9b43;
+    background: #ffff;
     color: #111111;
     border: none;
 }
 
 div[data-testid="stTextInput"] input {
-    background: #252525;
-    color: white;
-    border: 1px solid #555;
+    background: #ffff;
+    color: black;
+    border: 1px;
     border-radius: 10px;
 }
 
 .answer-box {
     background: #222222;
-    border-left: 4px solid #ff861f;
+    border-left: 4px solid;
     border-radius: 10px;
     padding: 20px;
     margin-top: 18px;
@@ -146,14 +150,7 @@ div[data-testid="stTextInput"] input {
 
 
 
-.footer {
-    text-align: center;
-    color: #999999;
-    margin-top: 35px;
-    padding: 20px;
-    border-top: 1px solid #333;
-}
-
+/* NÚT CHAT GÓC PHẢI */
 .st-key-chat_toggle {
     position: fixed;
     right: 25px;
@@ -162,55 +159,33 @@ div[data-testid="stTextInput"] input {
 }
 
 .st-key-chat_toggle button {
-    width: 62px;
-    height: 62px;
-    border-radius: 50px;
-    background: #ff861f;
-    color: #111111;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background: #ffff;
+    color: black;
     border: none;
-    font-size: 27px;
+    font-size: 24px;
     box-shadow: 0 4px 15px #0004;
 }
 
 .st-key-chat_toggle button:hover {
-    background: #ff9b43;
-    color: #111111;
+    background: #ffff;
+    color: black;
     border: none;
 }
 
 
-.st-key-chat_panel {
-    position: fixed;
-    right: 25px;
-    bottom: 100px;
-    width: 360px;
-    max-width: calc(100vw - 35px);
-    height: 480px;
-    overflow-y: auto;
-    z-index: 9999;
-    background: #ffff;
-    border: 1px solid #ff861f;
-    border-radius: 16px;
-    padding: 16px;
-    box-shadow: 0 8px 30px #0005;
-}
 
-/* input*/
-.st-key-chat_panel input {
-    background: white;
-    color: black;
-}
-
-.st-key-chat_panel [data-testid="stChatMessage"] {
-    background: #ffff;
-    border-radius: 10px;
-    padding: 8px;
-
-}
+.footer {
+    text-align: center;
+    color: #999999;
+    margin-top: 35px;
+    padding: 20px;
+    border-top: 1px solid #333;
+}</style>""",unsafe_allow_html=True)
 
 
-</style>
-""", unsafe_allow_html=True)
 st.markdown("""
 <div class="navbar">
     <div class="logo">BasketZone</div>
@@ -244,8 +219,7 @@ with left:
             Hỏi về các đội bóng, cầu thủ, luật chơi
             và kiến thức bóng rổ.
         </p>
-        <p>Hỏi đáp thông minh &nbsp; | &nbsp;
-           Phản hồi nhanh</p>
+        <p>Hỏi đáp thông minh &nbsp</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -294,94 +268,226 @@ with col3:
         st.session_state.prompt = (
             "Giới thiệu một số cầu thủ NBA nổi tiếng."
         )
-if "chat_open" not in st.session_state:
-    st.session_state.chat_open = False
+
+client = genai.Client(api_key=GEMINI_API_KEY)
+st.markdown("""
+<style>
+
+/* Nút chat góc phải */
+.st-key-chat_toggle {
+    position: fixed;
+    right: 25px;
+    bottom: 22px;
+    z-index: 10000;
+}
+
+.st-key-chat_toggle button {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: #ff861f;
+    color: #111;
+    border: none;
+    font-size: 24px;
+    box-shadow: 0 4px 15px #0005;
+}
+
+.st-key-chat_toggle button:hover {
+    background: #ff9b43;
+    color: #111;
+    border: none;
+}
+
+/* Khung chat */
+.st-key-chat_panel {
+    position: fixed;
+    right: 25px;
+    bottom: 95px;
+    width: 360px;
+    max-width: calc(100vw - 35px);
+    height: 480px;
+    overflow-y: auto;
+    z-index: 9999;
+    background: #ffff;
+    border: 1px solid #ffff;
+    border-radius: 16px;
+    padding: 15px;
+    box-shadow: 0 8px 30px #0005;
+}
+
+/* Tin nhắn */
+.st-key-chat_panel [data-testid="stChatMessage"] {
+    background: #ffff;
+    border-radius: 10px;
+    padding: 8px;
+}
+
+/* Ô nhập */
+.st-key-chat_panel input {
+    background: #ffff;
+    color:black;
+    border: 1px ;
+    border-radius: 8px;
+}
+
+/* Nút gửi */
+.st-key-chat_panel button {
+    background: #ff861f;
+    color: #111;
+    border: none;
+}
+
+</style>
+""", unsafe_allow_html=True)
+#chatbot
+@st.cache_data(ttl=300, show_spinner=False)
+def get_nba_schedule():
+    try:
+        today = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).strftime("%Y%m%d")
+        url = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard"
+
+        response = requests.get(url, params={"dates": today}, timeout=15)
+        response.raise_for_status()
+
+        games = []
+        for event in response.json().get("events", []):
+            competition = event["competitions"][0]
+            teams = competition["competitors"]
+
+            home = next((t for t in teams if t["homeAway"] == "home"), None)
+            away = next((t for t in teams if t["homeAway"] == "away"), None)
+
+            if not home or not away:
+                continue
+
+            game_time = datetime.fromisoformat(
+                event["date"].replace("Z", "+00:00")
+            ).astimezone(ZoneInfo("Asia/Ho_Chi_Minh"))
+
+            games.append({
+                "home": home["team"]["displayName"],
+                "away": away["team"]["displayName"],
+                "time": game_time.strftime("%H:%M %d/%m/%Y"),
+                "status": event["status"]["type"]["detail"],
+                "home_score": home.get("score", ""),
+                "away_score": away.get("score", "")
+            })
+
+        return games, None
+
+    except requests.exceptions.Timeout:
+        return None, "ESPN phản hồi quá lâu."
+    except requests.exceptions.RequestException as e:
+        return None, f"Lỗi kết nối ESPN: {e}"
+    except (KeyError, IndexError, ValueError, TypeError) as e:
+        return None, f"Lỗi đọc dữ liệu ESPN: {e}"
+
+
+# nhận biết
+def is_schedule_question(question):
+    keywords = ["lịch thi đấu", "hôm nay", "trận đấu", "thi đấu khi nào",
+                "trận tiếp theo", "sắp tới", "nba games", "schedule"]
+    return any(word in question.lower() for word in keywords)
+
+
+def ask_gemini(question):
+    if is_schedule_question(question):
+        games, error = get_nba_schedule()
+
+        if error:
+            return f"Không thể lấy lịch NBA. {error}"
+
+        if not games:
+            return "Hôm nay không có trận NBA nào được ghi nhận trên ESPN."
+
+        schedule = "\n".join(
+            f"{g['away']} vs {g['home']} | {g['time']} | {g['status']} | "
+            f"Tỉ số: {g['away_score']}-{g['home_score']}"
+            for g in games
+        )
+
+        prompt = f"""
+        Bạn là Basket AI của BasketZone.
+        Câu hỏi: {question}
+        Dữ liệu NBA từ ESPN:
+        {schedule}
+
+        Yêu cầu:
+        Trả lời bằng tiếng Việt, rõ ràng.
+        Chỉ sử dụng dữ liệu ESPN.
+        """
+    else:
+        prompt = f"""
+        Bạn là Basket AI, trợ lý bóng rổ của BasketZone.
+        Câu hỏi: {question}
+        Hãy trả lời bằng tiếng Việt,ngắn gọn và dễ hiểu.
+        """
+
+    for i in range(3):
+        try:
+            response = client.models.generate_content(
+                model="gemini-3.8-flash", contents=prompt
+            )
+            return response.text or "Bạn hãy thử hỏi lại nhé!"
+
+        except Exception as e:
+            if "503" in str(e) or "UNAVAILABLE" in str(e):
+                if i < 2:
+                    time.sleep(2 ** i)
+                    continue
+                return "Gemini đang quá tải. Bạn thử lại sau nhé! 🏀"
+
+            return f"Gemini đang gặp lỗi: {e}"
+
+    return "Không thể nhận câu trả lời từ Gemini."
+
+if "mini_open" not in st.session_state:
+    st.session_state.mini_open = False
 
 if "mini_messages" not in st.session_state:
+
     st.session_state.mini_messages = [
         {
             "role": "assistant",
-            "content": "Xin chào!Mình có thể giúp gì về bóng rổ?"
+            "content": "Basket AI xin chào bạn"
         }
     ]
-
-# đóng và mở
 if st.button("", key="chat_toggle"):
-    st.session_state.chat_open = not st.session_state.chat_open
+    st.session_state.mini_open = not st.session_state.mini_open
+    st.rerun()
 
-# appear
-if st.session_state.chat_open:
+if st.session_state.mini_open:
     with st.container(key="chat_panel"):
+        col1, col2 = st.columns([5, 1])
 
-        title_col, close_col = st.columns([5, 1])
+        with col1:
+            st.markdown("<h3 style='color:#ff861f;margin:0;'>Basket AI</h3>", unsafe_allow_html=True)
 
-        with title_col:
-            st.markdown(
-                "<h3 style='color:#ff861f;margin:0;'>Basket AI</h3>",
-                unsafe_allow_html=True
-            )
-
-        with close_col:
+        with col2:
             if st.button("✖", key="close_chat"):
-                st.session_state.chat_open = False
+                st.session_state.mini_open = False
                 st.rerun()
 
         st.caption("Trợ lý bóng rổ BasketZone")
         st.divider()
 
-        for message in st.session_state.mini_messages:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+        for msg in st.session_state.mini_messages:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
 
-        question_chat = st.chat_input(
-            "Nhập câu hỏi về bóng rổ...",
-            key="mini_chat_input"
-        )
+        with st.form("mini_chat_form", clear_on_submit=True):
+            question = st.text_input("Câu hỏi", placeholder="Nhập câu hỏi về bóng rổ...", label_visibility="collapsed")
+            send = st.form_submit_button("Gửi", use_container_width=True)
 
-        if question_chat:
-            # ques ng dùng
-            st.session_state.mini_messages.append({
-                "role": "user",
-                "content": question_chat
-            })
-            #model AI
-            try:
-                client = genai.Client(api_key=GEMINI_API_KEY)
+        if send and question.strip():
+            st.session_state.mini_messages.append({"role": "user", "content": question})
 
-                with st.spinner("Basket AI đang trả lời..."):
-                    response = client.models.generate_content(
-                        model="gemini-3.8-flash",
-                        contents=[
-                            {
-                                "role": (
-                                    "user" if m["role"] == "assistant"
-                                    else m["role"]
-                                ),
-                                "parts": [{"text": m["content"]}]
-                            }
-                            for m in st.session_state.mini_messages
-                            if m["role"] == "user"
-                        ],
-                        config=types.GenerateContentConfig(
-                            system_instruction=(
-                                "Bạn là Basket AI, trợ lý bóng rổ. "
-                                "Trả lời bằng tiếng Việt, ngắn gọn, "
-                                "dễ hiểu. Không bịa dữ liệu lịch thi đấu."
-                            )
-                        )
-                    )
+            with st.spinner("Basket AI đang trả lời..."):
+                answer = ask_gemini(question)
 
-                answer = response.text or "Bạn hãy thử hỏi lại nhé!"
-
-            except Exception as e:
-                answer = f"Đã xảy ra lỗi: {e}"
-
-            st.session_state.mini_messages.append({
-                "role": "assistant",
-                "content": answer
-            })
-
+            st.session_state.mini_messages.append({"role": "assistant", "content": answer})
             st.rerun()
+
 
 st.markdown("""
 <div class="footer">
