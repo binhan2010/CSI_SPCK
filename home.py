@@ -2,10 +2,9 @@ import streamlit as st
 import google.genai as genai
 import requests
 import time,random
-
-from config import GEMINI_API_KEY,NBA_API_KEY
-from datetime import datetime
 from zoneinfo import ZoneInfo
+from datetime import datetime
+from config import GEMINI_API_KEY, NBA_API_KEY
 st.set_page_config(
     page_title="Trang chủ",
     page_icon="🏀",
@@ -406,7 +405,7 @@ def ask_gemini(question):
             for g in games
         )
 
-        prompt = f"""
+        instructions = f"""
         Bạn là Basket AI của BasketZone.
         Câu hỏi: {question}
         Dữ liệu NBA từ ESPN:
@@ -417,7 +416,7 @@ def ask_gemini(question):
         Chỉ sử dụng dữ liệu ESPN.
         """
     else:
-        prompt = f"""
+        instructions = f"""
         Bạn là Basket AI, trợ lý bóng rổ của BasketZone.
         Câu hỏi: {question}
         Hãy trả lời bằng tiếng Việt,ngắn gọn và dễ hiểu.
@@ -426,7 +425,7 @@ def ask_gemini(question):
     for i in range(3):
         try:
             response = client.models.generate_content(
-                model="gemini-3.8-flash", contents=prompt
+                model="gemini-3.8-flash", contents=instructions
             )
             return response.text or "Bạn hãy thử hỏi lại nhé!"
 
@@ -435,7 +434,7 @@ def ask_gemini(question):
                 if i < 2:
                     time.sleep(2 ** i)
                     continue
-                return "Gemini đang quá tải. Bạn thử lại sau nhé! 🏀"
+                return "Gemini đang quá tải. Bạn thử lại sau nhé!"
 
             return f"Gemini đang gặp lỗi: {e}"
 
