@@ -194,7 +194,14 @@ teams = {
     "Boston Celtics": "boston_logo.png",
     "Golden State Warriors": "golden_state_w_logo.png",
     "New York Knicks": "nyk_logo.png",
-    "Miami Heat": "miami_heat_logo.jpg"
+    "Miami Heat": "miami_heat_logo.jpg",
+    "Saigon Heat": "saigon_heat_logo.png",
+    "Hanoi Buffaloes": "hanoi_buffaloes_logo.png",
+    "Thang Long Warriors": "thang_long_warriors_logo.png",
+    "Danang Dragons": "danang_dragons_logo.png",
+    "Nhatrang Dolphins": "nhatrang_dolphins_logo.png",
+    "Cantho Catfish": "cantho_catfish_logo.png",
+    "Ho Chi Minh City Wings": "hcmc_wings_logo.png"
 }
 
 tk = st.text_input("Tìm kiếm",
@@ -248,7 +255,7 @@ if selected:
         age = st.number_input(
             "Tuổi",
             min_value=10,
-            max_value=100,
+            max_value=40,
             value=16
         )
         experience = st.selectbox(
