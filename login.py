@@ -1,31 +1,25 @@
 import streamlit as st
 import json
 import re
-import hashlib
 from pathlib import Path
-import base64
-import streamlit as st
 import sys
-from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 st.set_page_config(
-    page_title="Đăng nhập / Đăng ký",
+    page_title="Đăng nhập",
     page_icon="🏀",
     initial_sidebar_state="collapsed"
 )
 
 file_path = Path(__file__).parent / "users.json"
 BASE_DIR = Path(__file__).resolve().parents[1]
-BG_PATH = BASE_DIR / "image" / "bg.jpg"
-
-
-
 
 st.markdown("""
 <style>
-#MainMenu, footer, header {
+#MainMenu,
+footer,
+header {
     visibility: hidden;
 }
 
@@ -34,19 +28,15 @@ st.markdown("""
 }
 
 .block-container {
-    padding-top: 1rem;
+    padding-top: 5rem;
     padding-bottom: 2rem;
-    max-width: 1200px;
-    width:450px;
-    margin-top:50px;
+    max-width: 450px;
 }
 
 .stApp {
-    # background: linear-gradient(135deg, #101010, #202020);
-    background:#ffff
-    color:white;
+    background: #ffffff;
+    color: #222222;
 }
-
 
 .navbar {
     position: fixed;
@@ -62,15 +52,6 @@ st.markdown("""
     border-bottom: 1px solid #333;
     padding: 0 40px;
     z-index: 9999;
-    margin-top:0;
-    border-radius: 0;
-}
-
-
-.logo {
-    color: #ff861f;
-    font-size: 25px;
-    font-weight: 800;
 }
 
 .nav-links {
@@ -90,13 +71,6 @@ st.markdown("""
     color: #ff861f;
 }
 
-
-.orange {
-    color: #ff861f;
-}
-
-
-
 div.stButton > button {
     background: #ff861f;
     color: #111111;
@@ -106,6 +80,12 @@ div.stButton > button {
     min-height: 43px;
 }
 
+.logo {
+    color: #ff861f;
+    font-size: 25px;
+    font-weight: 800;
+}
+
 div.stButton > button:hover {
     background: #ff9b43;
     color: #111111;
@@ -113,30 +93,14 @@ div.stButton > button:hover {
 }
 
 div[data-testid="stTextInput"] input {
-    background:#ffff;
+    background: #ffffff;
     color: black;
-    border: 1px solid #ffff;
+    border: 1px solid #dddddd;
     border-radius: 10px;
-}
-
-.answer-box {
-    background: #ffff;
-    border-left: 4px solid #ff861f;
-    border-radius: 10px;
-    padding: 20px;
-    margin-top: 18px;
-    color: #ffff;
-}
-
-.footer {
-    text-align: center;
-    color: #999999;
-    margin-top: 35px;
-    padding: 20px;
-    border-top: 1px solid #333;
 }
 </style>
 """, unsafe_allow_html=True)
+
 st.markdown("""
 <div class="navbar">
     <div class="logo">🏀 BasketZone</div>
@@ -146,9 +110,9 @@ st.markdown("""
         <a href="/booking" target="_self">Đặt sân</a>
         <a href="/login" target="_self">Đăng nhập</a>
         <a href="/register" target="_self">Đăng ký</a>
+    </div>
 </div>
 """, unsafe_allow_html=True)
-
 def validate_username(username):
     if not username:
         return "Vui lòng nhập username."
@@ -186,33 +150,26 @@ def validate_password(password):
         return "Mật khẩu phải có ít nhất 1 ký tự đặc biệt."
 
     return None
-
 with st.container(border=True):
     st.subheader("Đăng nhập")
-
     username = st.text_input(
         "Username",
         placeholder="Nhập tên đăng nhập"
     )
-
     password = st.text_input(
         "Password",
         type="password",
         placeholder="Nhập mật khẩu"
     )
-
     if st.button("Đăng nhập", use_container_width=True):
-        username = username.strip()
 
+        username = username.strip()
         username_error = validate_username(username)
         password_error = validate_password(password)
-
         if username_error:
             st.error(username_error)
-
         if password_error:
             st.error(password_error)
-
         if not username_error and not password_error:
             if not file_path.exists():
                 st.error("Chưa tìm thấy file users.json.")
@@ -220,43 +177,31 @@ with st.container(border=True):
                 try:
                     with open(file_path, "r", encoding="utf-8") as file:
                         users = json.load(file)
-
                     if not isinstance(users, dict):
                         st.error("Dữ liệu users.json không hợp lệ.")
+
                     else:
                         found = False
-
                         for user in users.values():
                             if not isinstance(user, dict):
                                 continue
-
-                            salt = user.get("salt")
-                            password_hash = user.get("password_hash")
-
                             if (
                                 user.get("username") == username
-                                and salt
-                                and password_hash
+                                and user.get("password") == password
                             ):
-                                hashed = hashlib.pbkdf2_hmac(
-                                    "sha256",
-                                    password.encode("utf-8"),
-                                    salt.encode("utf-8"),
-                                    600000
-                                ).hex()
-
-                                if hashed == password_hash:
-                                    found = True
-                                    break
-
+                                found = True
+                                break
                         if found:
-                            st.success("🎉 Đăng nhập thành công!")
+
+                            st.session_state["logged_in"] = True
+                            st.session_state["username"] = username
+                            st.switch_page(str(BASE_DIR / "home.py"))
                         else:
                             st.error(
                                 "Username hoặc mật khẩu không chính xác."
                             )
-
                 except (json.JSONDecodeError, OSError):
                     st.error(
                         "Không thể đọc dữ liệu tài khoản. "
                         "Hãy kiểm tra file users.json."
+                    )
